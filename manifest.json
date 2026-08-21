@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Windyfy",
+  "version": "1.0.0",
+  "description": "Windy31 on every YouTube thumbnail.",
+ "icons": {
+    "128": "ico.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["windy.png"],
+      "matches": ["*://*.youtube.com/*"]
+    }
+  ]
+}

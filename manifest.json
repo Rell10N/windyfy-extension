@@ -1,9 +1,23 @@
 {
   "manifest_version": 3,
-  "name": "Windyfy",
-  "version": "1.0.0",
-  "description": "Windy31 on every YouTube thumbnail.",
- "icons": {
+  "name": "Windify",
+  "version": "1.1.0",
+  "description": "Windy31 на каждом превью YouTube.",
+  "author": "Rell10N",
+  "permissions": ["storage"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "128": "ico.png"
+    }
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "windify@rell10n.addon",
+      "strict_min_version": "109.0"
+    }
+  },
+  "icons": {
     "128": "ico.png"
   },
   "content_scripts": [

@@ -1,3 +1,30 @@
+let currentSettings = {
+  facesEnabled: true,
+  titlesEnabled: true,
+  selectedPhrases: [
+    '(и это правда страшно...)'
+  ]
+};
+
+// Загружаем настройки и слушаем изменения из popup
+chrome.storage.sync.get(currentSettings, (items) => {
+  currentSettings = items;
+  updateFacesVisibility();
+  scanTitles();
+});
+
+chrome.storage.onChanged.addListener((changes) => {
+  for (let key in changes) {
+    currentSettings[key] = changes[key].newValue;
+  }
+  updateFacesVisibility();
+  scanTitles();
+});
+
+function updateFacesVisibility() {
+  document.documentElement.classList.toggle('windify-hide-faces', !currentSettings.facesEnabled);
+}
+
 const WINDY_IMAGE_URL = chrome.runtime.getURL('windy.png');
 
 const HOME_PRESETS = [
@@ -118,6 +145,11 @@ function injectCSSRules() {
       visibility: hidden !important;
       transition: none !important;
     }
+
+    /* Выключение лиц через меню */
+    .windify-hide-faces .windyfy-overlay-img {
+      display: none !important;
+    }
   `;
   document.head.appendChild(style);
 }
@@ -179,6 +211,7 @@ function applyWindyOverlay(element) {
 
 function scanThumbnails() {
   injectCSSRules();
+  scanTitles();
 
   const targets = document.querySelectorAll('.ytThumbnailViewModelImage, ytd-thumbnail');
 
@@ -204,3 +237,94 @@ observer.observe(document.body, {
   childList: true,
   subtree: true
 });
+
+function getConsistentPhrase(titleText, phrases) {
+  if (!phrases || phrases.length === 0) return '';
+  let hash = 0;
+  for (let i = 0; i < titleText.length; i++) {
+    hash = ((hash << 5) - hash) + titleText.charCodeAt(i);
+    hash |= 0;
+  }
+  const index = Math.abs(hash) % phrases.length;
+  return phrases[index];
+}
+
+function hasPrecedingWhitespace(suffix) {
+  let node = suffix.previousSibling;
+  while (node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      if (node.textContent.length > 0) {
+        return /\s$/.test(node.textContent);
+      }
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      return /\s$/.test(node.textContent || '');
+    }
+    node = node.previousSibling;
+  }
+  return false;
+}
+
+function scanTitles() {
+  const titleSelectors = [
+    'a#video-title',
+    'span#video-title',
+    '.yt-lockup-metadata-view-model-wiz__title',
+    'a.ytLockupMetadataViewModelTitle',
+    'ytd-watch-metadata #title h1',
+    'h1.ytd-watch-metadata'
+  ].join(', ');
+
+  const titles = document.querySelectorAll(titleSelectors);
+
+  titles.forEach(el => {
+    const suffixes = el.querySelectorAll('.windify-title-suffix');
+    let suffix = suffixes[0] || null;
+    for (let i = 1; i < suffixes.length; i++) {
+      suffixes[i].remove();
+    }
+
+    const tooltipHost = el.getAttribute('title') ? el : (el.closest('[title]') || el.querySelector('[title]'));
+
+    if (!currentSettings.titlesEnabled || currentSettings.selectedPhrases.length === 0) {
+      if (suffix) suffix.remove();
+      if (tooltipHost && tooltipHost.dataset.windifyOrigTooltip) {
+        tooltipHost.setAttribute('title', tooltipHost.dataset.windifyOrigTooltip);
+      }
+      return;
+    }
+
+    const rawText = el.innerText || el.textContent;
+    const cleanTitle = rawText.replace(/\((?:и это правда страшно\.\.\.|и это забавно\.\.\.|да, реально всё\.\.\.|я не усну\.\.\.|тебе конец\.\.\.)\)/g, '').trim();
+
+    const phrase = getConsistentPhrase(cleanTitle, currentSettings.selectedPhrases);
+
+    if (!suffix) {
+      suffix = document.createElement('span');
+      suffix.className = 'windify-title-suffix';
+      suffix.style.color = 'inherit';
+      suffix.style.font = 'inherit';
+      suffix.style.opacity = '0.9';
+    }
+
+    if (suffix.textContent !== phrase) {
+      suffix.textContent = phrase;
+    }
+
+    if (el.lastElementChild !== suffix) {
+      el.appendChild(suffix);
+    }
+
+    suffix.style.marginLeft = hasPrecedingWhitespace(suffix) ? '0px' : '6px';
+
+    if (tooltipHost) {
+      if (!tooltipHost.dataset.windifyOrigTooltip) {
+        const currentTooltip = tooltipHost.getAttribute('title') || cleanTitle;
+        tooltipHost.dataset.windifyOrigTooltip = currentTooltip.replace(/\((?:и это правда страшно\.\.\.|и это забавно\.\.\.|да, реально всё\.\.\.|я не усну\.\.\.|тебе конец\.\.\.)\)/g, '').trim();
+      }
+      const targetTooltip = `${tooltipHost.dataset.windifyOrigTooltip} ${phrase}`;
+      if (tooltipHost.getAttribute('title') !== targetTooltip) {
+        tooltipHost.setAttribute('title', targetTooltip);
+      }
+    }
+  });
+}

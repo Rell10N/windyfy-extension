@@ -37,6 +37,19 @@
 
 ---
 
+## Установка на Safari (iPhone, iPad, Mac)
+
+В Safari обычные расширения просто так не поставить, поэтому я сделал Юзерскрипт:
+
+1. Установите бесплатную прогу **Userscripts** из App Store.
+2. Зайдите в *Настройки ➔ Safari ➔ Расширения* и включите там **Userscripts** (дайте доступ, если спросят).
+3. Откройте прямо в Safari ссылку на скрипт:  
+[Установить скрипт windify.user.js](https://raw.githubusercontent.com/Rell10N/windyfy-extension/main/Safari/windify.user.js)
+4. В адресной строке Safari нажмите на значок расширения ➔ выберите **Userscripts** ➔ нажмите **«Install»** (Установить).
+5. Зайдите на YouTube через Safari. И всё должно работать.
+
+---
+
 ## Установка на телефон (Android)
 
 Стандартный Chrome на Android не поддерживает расширения, поэтому нужен браузер с их поддержкой (например, Kiwi\Lemur Browser).

@@ -31,7 +31,7 @@
 
 Расширение официально вышло в магазине Mozilla, ставится в один клик:
 
-1. Перейдите по ссылке: 👉 [Установить Windify для Firefox](https://addons.mozilla.org/ru/firefox/addon/windify/)
+1. Перейдите по ссылке: 👉 [Установить Windify для Firefox](https://addons.mozilla.org/ru/firefox/addon/windyfy/)
 2. Нажмите синюю кнопку **«Добавить в Firefox»**.
 3. Готово!
 
